@@ -6,25 +6,48 @@
 
 #define LIST_H
 #ifdef LIST_H
-#include "List.h"
+#include "ListObj.h"
 #endif 
 
 #include "HashTable.h"
 #include "HashFunctions.h"
 #include "Text.h"
 
-int main()
+int main() //       Все узлы ссылаются на одно поле?
 {
-    /*std::cout << "Hello World!\n";
+  /*  class List<int> list {};
 
-    class List<int> list {};
-    int a = 0;
-    for(int i = 0; i < 5; i++) list.push_back(i);
-    for(int i = 0; i < 5; i++) list.push_front(i * 100 - 1);
+    for (int i = 0; i < 5; i++) {
+        list.push_back(i);
+        list.dump();
+    }
+    for (int i = 0; i < 5; i++) {
+        i = i * 100 - 1;
+        list.push_front(i);
+        i = (i + 1) / 100;
+    }
     printf("Let's start\n");
     list.dump();
+    int b;
+    for(int i = 0; i < 5; i++) b = list.pop_back();
+    printf("\n");
+    list.dump();
 
-    for(int i = 0; i < 5; i++) a = list.pop_back();*/
+    class List<int> shlist {};
+
+    for (int i = 0; i < 7; i++) shlist.push_back(i);
+    for (int i = 0; i < 2; i++) {
+        i = i * 100 - 1;
+        shlist.push_front(i);
+        i = (i + 1) / 100;
+    }
+    shlist.dump();
+    for (int i = 0; i < 5; i++) b = shlist.pop_back();
+    printf("\n");
+    shlist.dump();*/
+
+
+
     int lenght = LenghtOfFile() + 1;
     char* Text = (char*)calloc(lenght + 1, sizeof(char));
     Text[0] = '\n';
@@ -33,15 +56,33 @@ int main()
     struct LineInfo* Line = (struct LineInfo*)calloc(sum_string, sizeof(struct LineInfo));
     FillStruct(Line, Text, lenght, sum_string);
 
-    HashTable<char*> sum{};
-    for (size_t i = 0; i < 1000; i++) {
-        sum.push(Line[i].index + 1, hash_sum);
-        printf("[%s]\n", Line[i].index + 1);
+    HashTable<char*> sum{ hash_sum };
+    for (size_t i = 0; i < 4000; i++) {
+        if (*(Line[i].index + 1) != '\0') {
+            //printf("[%s]\n", Line[i].index + 1);
+            sum.push(Line[i].index + 1);
+            //printf("\n");
+            //sum.dump();
+            //printf("\n");
+        }
     }
+    sum.file_dump();
 
-    sum.table[0].dump();
+    HashTable<char*> len{ hash_len };
+    for (size_t i = 0; i < 4000; i++) {
+        if (*(Line[i].index + 1) != '\0') {
+            len.push(Line[i].index + 1);
+        }
+    }
+    len.file_dump();
 
-    sum.dump();
+    HashTable<char*> pol{ hash_pol };
+    for (size_t i = 0; i < 4000; i++) {
+        if (*(Line[i].index + 1) != '\0') {
+            pol.push(Line[i].index + 1);
+        }
+    }
+    pol.file_dump();
 
     free(Text);
 }
