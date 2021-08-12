@@ -48,6 +48,9 @@ public:
 	void dump();
 	void file_dump(std::ofstream& potok);
 	bool is_empty();
+	Node<TYPE>* find_node(TYPE data_);
+	void delete_node(TYPE data_);
+	size_t size();
 };
 
 template <typename TYPE>
@@ -88,7 +91,8 @@ template <typename TYPE>
 TYPE List<TYPE>::pop_back() {
 	if (tail == nullptr) {
 		printf("List is empty\n");
-		return NULL;
+		TYPE random;
+		return random;
 	}
 	if (tail->prev == nullptr) {
 		TYPE tmp_ptr = tail->data;
@@ -108,7 +112,8 @@ template <typename TYPE>
 TYPE List<TYPE>::pop_front() {
 	if (root == nullptr) {
 		printf("List is empty\n");
-		return NULL;
+		TYPE random;
+		return random;
 	}
 	if (root->next == nullptr) {
 
@@ -152,6 +157,57 @@ void List<TYPE>::file_dump(std::ofstream& potok) {
 }
 
 template <typename TYPE>
+Node<TYPE>* List<TYPE>::find_node(TYPE data_) {
+	if (is_empty()) {
+		printf("List is empty, don't find\n");
+		return nullptr;
+	}
+	Node<TYPE>* iterator = root;
+	//std::cout << iterator->data << " - " << data_ << std::endl;
+	//std::cout << iterator->data;
+	while (iterator->data != data_) {
+		if (iterator->next == nullptr) {
+			printf("\nThis don't find\n");
+			return nullptr;
+		}
+		iterator = iterator->next; 
+		//std::cout << " -> " << iterator->data;
+	}
+	return iterator;
+}
+
+template <typename TYPE>
+void List<TYPE>::delete_node(TYPE data_) {
+	Node<TYPE>* iterator = find_node(data_);
+	if (iterator == nullptr) {
+		printf("\nThere no that node\n");
+		return;
+	}
+	if (root == tail) {
+		root = nullptr;
+		tail = nullptr;
+		return;
+	}
+	if (iterator == tail) tail = iterator->prev;
+	if (iterator == root) root = iterator->next;
+	if (iterator->prev != nullptr) iterator->prev->next = iterator->next;
+	if (iterator->next != nullptr) iterator->next->prev = iterator->prev;
+}
+
+
+template <typename TYPE>
+size_t List<TYPE>::size() {
+	if (is_empty()) return 0;
+	size_t size = 1;
+	Node<TYPE>* iterator = root;
+	while (iterator->next != nullptr) {
+		iterator = iterator->next;
+		++size;
+	}
+	return size;
+}
+
+template <typename TYPE>
 List<TYPE>::~List() {
 	if (is_empty()) return;
 	TYPE tmp;
@@ -170,48 +226,84 @@ bool List<TYPE>::is_empty() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 #define MINIMAL_TABLE 10
 
-template<typename TYPE>
-using hash_func = size_t(*)(TYPE);
+template<typename KEY>
+using hash_func = size_t(*)(KEY);
 
-template <typename TYPE>
+template<typename KEY, typename VALUE>
+class pair {
+public:
+	KEY key;
+	VALUE value;
+	pair(KEY key_, VALUE value_) {
+		key = key_;
+		value = value_;
+	}
+	pair(KEY key_) {
+		key = key_;
+		value = 0;
+	}
+	pair() {
+		key = 0;
+		value = 0;
+	}
+	friend std::ostream& operator<< (std::ostream& out, const pair& pair_) {
+		out << "[" << pair_.key << "] - [" << pair_.value << "]";
+		return out;
+	}
+	bool operator== (const pair& right) { // you have both variations ?? No
+		return (key == right.key);
+	}
+	bool operator!= (const pair& right) {
+		return (key != right.key);
+	}
+};
+
+
+
+
+template<typename KEY, typename VALUE>
 class HashTable {
 
-	List<TYPE>* table;
+	List<pair<KEY, VALUE>>* table;
 	size_t size;
 	size_t capacity;
-	hash_func<TYPE> count_hash;
+	hash_func<KEY> count_hash;
 
 	void rehash();
 
 public:
-	HashTable(hash_func<TYPE> hash);
+	HashTable(hash_func<KEY> hash);
 	~HashTable();
-	void push(TYPE data_);
+	void push(KEY key, VALUE value);
 	void dump();
 	void file_dump();
+	VALUE find_value(KEY key);
+	void delete_value(KEY key);
+	void list_size();
 };
 
-template <typename TYPE>
-HashTable<TYPE>::HashTable(hash_func<TYPE> hash) {
+template<typename KEY, typename VALUE>
+HashTable<KEY, VALUE>::HashTable(hash_func<KEY> hash) {
 	count_hash = hash;
 	capacity = MINIMAL_TABLE;
 	size = 0;
-	table = new List<TYPE>[capacity] {};
+	table = new List<pair<KEY, VALUE>>[capacity] {};
 }
 
-template <typename TYPE>
-void HashTable<TYPE>::push(TYPE data_) {
+template<typename KEY, typename VALUE>
+void HashTable<KEY, VALUE>::push(KEY key, VALUE value) {
 	if (size * 2 >= capacity) rehash();
-	size_t index = (*count_hash)(data_) % capacity;
+	size_t index = (*count_hash)(key) % capacity;
 	if (table[index].is_empty()) size++;
-	table[index].push_back(data_);
+	class pair<KEY, VALUE> node(key, value); //Static?
+	table[index].push_back(node);
 }
 
-template <typename TYPE>
-void HashTable<TYPE>::dump() {
+template<typename KEY, typename VALUE>
+void HashTable<KEY, VALUE>::dump() {
 	for (size_t i = 0; i < capacity; i++) {
 		printf("%d: ", i);
 		table[i].dump();
@@ -219,8 +311,8 @@ void HashTable<TYPE>::dump() {
 	}
 }
 
-template <typename TYPE>
-void HashTable<TYPE>::file_dump() {
+template<typename KEY, typename VALUE>
+void HashTable<KEY, VALUE>::file_dump() {
 	std::ofstream potok;
 	potok.open("log.txt", std::ios::app);
 	for (size_t i = 0; i < capacity; i++) {
@@ -232,20 +324,20 @@ void HashTable<TYPE>::file_dump() {
 	potok.close();
 }
 
-template <typename TYPE>
-void HashTable<TYPE>::rehash() {
+template<typename KEY, typename VALUE>
+void HashTable<KEY, VALUE>::rehash() {
 	capacity *= 2;
 	size = 0;
-	List<TYPE>* tmp_table = new List<TYPE>[capacity] {};
+	List<pair<KEY, VALUE>>* tmp_table = new List<pair<KEY, VALUE>>[capacity] {};
 
-	TYPE tmp_data; // no initile
+	pair<KEY, VALUE> tmp_data; // no initile
 	size_t index = 0;
 
 	for (size_t i = 0; i < capacity / 2; i++) { // capacity divide by 2
 		while (!(table[i].is_empty())) {
 			tmp_data = table[i].pop_back();
-			std::cout << tmp_data << std::endl;
-			index = (*count_hash)(tmp_data) % capacity;
+			//std::cout << tmp_data;
+			index = (*count_hash)(tmp_data.key) % capacity;
 			if (tmp_table[index].is_empty()) size++;
 			tmp_table[index].push_back(tmp_data);
 		}
@@ -254,7 +346,30 @@ void HashTable<TYPE>::rehash() {
 	table = tmp_table;
 }
 
-template <typename TYPE>
-HashTable<TYPE>::~HashTable() {
+template<typename KEY, typename VALUE>
+HashTable<KEY, VALUE>::~HashTable() {
 	delete[] table;
 }
+
+template<typename KEY, typename VALUE> 
+VALUE HashTable<KEY, VALUE>::find_value(KEY key) {
+	//std::cout << "\n\nkey - " << key << std::endl;
+	class pair<KEY, VALUE> node(key);
+	size_t index = (*count_hash)(key) % capacity;
+	Node<pair<KEY, VALUE>>* iterator = table[index].find_node(node);
+	if (iterator == nullptr) return 0;
+	return iterator->data.value;
+}
+
+template<typename KEY, typename VALUE>
+void HashTable<KEY, VALUE>::delete_value(KEY key) {
+	//std::cout << "\n\nkey - " << key << std::endl;
+	class pair<KEY, VALUE> node(key);
+	size_t index = (*count_hash)(key) % capacity;
+	table[index].delete_node(node);
+}
+
+template<typename KEY, typename VALUE>
+void HashTable<KEY, VALUE>::list_size() {
+	for (size_t i = 0; i < capacity; ++i) printf("%d: %d\n", i, table[i].size());
+}*/

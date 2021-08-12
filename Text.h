@@ -15,3 +15,4 @@ int LenghtOfFile();
 void InputText(char* Text, int lenght);
 int SumString(char* onegin);
 void FillStruct(struct LineInfo* Line, char* Text, int lenght, int sum_string);
+void fill_struct(char* lines, size_t sum_string, char** eng, char** rus);

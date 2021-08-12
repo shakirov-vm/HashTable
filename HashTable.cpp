@@ -3,86 +3,65 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <locale.h>
 
 #define LIST_H
 #ifdef LIST_H
 #include "ListObj.h"
 #endif 
 
+#include "Table.h"
+
 #include "HashTable.h"
 #include "HashFunctions.h"
 #include "Text.h"
 
-int main() //       Все узлы ссылаются на одно поле?
+int main()
 {
-  /*  class List<int> list {};
+    setlocale(LC_ALL, "");
 
-    for (int i = 0; i < 5; i++) {
-        list.push_back(i);
-        list.dump();
-    }
-    for (int i = 0; i < 5; i++) {
-        i = i * 100 - 1;
-        list.push_front(i);
-        i = (i + 1) / 100;
-    }
-    printf("Let's start\n");
-    list.dump();
-    int b;
-    for(int i = 0; i < 5; i++) b = list.pop_back();
-    printf("\n");
-    list.dump();
-
-    class List<int> shlist {};
-
-    for (int i = 0; i < 7; i++) shlist.push_back(i);
-    for (int i = 0; i < 2; i++) {
-        i = i * 100 - 1;
-        shlist.push_front(i);
-        i = (i + 1) / 100;
-    }
-    shlist.dump();
-    for (int i = 0; i < 5; i++) b = shlist.pop_back();
-    printf("\n");
-    shlist.dump();*/
-
-
-
-    int lenght = LenghtOfFile() + 1;
+    size_t lenght = LenghtOfFile();
     char* Text = (char*)calloc(lenght + 1, sizeof(char));
-    Text[0] = '\n';
     InputText(Text, lenght);
-    int sum_string = SumString(Text);
-    struct LineInfo* Line = (struct LineInfo*)calloc(sum_string, sizeof(struct LineInfo));
-    FillStruct(Line, Text, lenght, sum_string);
 
-    HashTable<char*> sum{ hash_sum };
-    for (size_t i = 0; i < 4000; i++) {
-        if (*(Line[i].index + 1) != '\0') {
-            //printf("[%s]\n", Line[i].index + 1);
-            sum.push(Line[i].index + 1);
-            //printf("\n");
-            //sum.dump();
-            //printf("\n");
-        }
+    size_t sum_string = SumString(Text);
+    sum_string /= 2;
+
+    printf("sum string - %d\n", sum_string);
+    char** eng = (char**)calloc(sum_string, sizeof(char*));
+    char** rus = (char**)calloc(sum_string, sizeof(char*));
+
+    sum_string++; // Иначе последнее не выведется
+    fill_struct(Text, sum_string, eng, rus);
+
+    /*for (size_t i = 0; i < sum_string; i++) {
+        printf("[%s] - [%s]\n", eng[i], rus[i]);
+    }*/
+
+    HashTable<char*, char* > sum{ hash_sum };
+    for (size_t i = 0; i < sum_string; i++) {
+        sum.push(eng[i], rus[i]);
     }
     sum.file_dump();
 
-    HashTable<char*> len{ hash_len };
-    for (size_t i = 0; i < 4000; i++) {
-        if (*(Line[i].index + 1) != '\0') {
-            len.push(Line[i].index + 1);
-        }
+    HashTable<char*, char* > len{ hash_len };
+    for (size_t i = 0; i < sum_string; i++) {
+        len.push(eng[i], rus[i]);
     }
     len.file_dump();
 
-    HashTable<char*> pol{ hash_pol };
-    for (size_t i = 0; i < 4000; i++) {
-        if (*(Line[i].index + 1) != '\0') {
-            pol.push(Line[i].index + 1);
-        }
+    HashTable<char*, char* > pol{ hash_pol };
+    for (size_t i = 0; i < sum_string; i++) {
+        pol.push(eng[i], rus[i]);
     }
     pol.file_dump();
+
+    //for (size_t i = 0; i < sum_string; i++) if ((i % 5) == 0) printf("\n%d: %s - %s", i, eng[i], pol.find_value(eng[i]));
+
+    printf("\nNow delete\n");
+    for (size_t i = 0; i < sum_string; i++) if ((i % 3) == 0) pol.delete_value(eng[i]);
+
+    len.list_size();
 
     free(Text);
 }

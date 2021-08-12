@@ -1,7 +1,7 @@
 
 #include "Text.h"
 
-const char input[] = "Input.txt";
+const char input[] = "ENRUSFULL.txt";
 
 int LenghtOfFile()
 {
@@ -13,15 +13,15 @@ int LenghtOfFile()
 }
 void InputText(char* Text, int lenght)
 {
-    FILE* potok = NULL;
+    FILE* potok = fopen(input, "r+");
 
-    if ((potok = fopen(input, "r+")) == NULL) {
+    if (potok == nullptr) {
         printf("Failed to open input file. LINE: %d\n", __LINE__);
         free(Text);
     }
 
-    fread(Text + 1, sizeof(char), lenght, potok);
-
+    size_t readed = fread(Text + 1, sizeof(char), lenght, potok);
+    printf("%d - readed\n", readed);
     fclose(potok);
 }
 int SumString(char* Text)
@@ -33,6 +33,7 @@ int SumString(char* Text)
     {
         if (Text[i] == '\n')
         {
+            Text[i] = '\0';
             sum_string++;
         }
     }
@@ -62,4 +63,25 @@ void FillStruct(struct LineInfo* Line, char* Text, int lenght, int sum_string)
         for (j = 0; *(Line[i].index + 1 + j) != '\0'; j++) {}
         Line[i].len = j + 1;
     }
+}
+
+void fill_struct(char* lines, size_t sum_string, char** eng, char** rus) {
+    sum_string *= 2;
+    size_t string = 0;
+    size_t index = 0;
+    for (size_t i = 0; string < sum_string; ) {
+        while (lines[i] != '\0') i++;
+        i++;
+        if (string % 2 == 0) {
+            eng[index] = lines + i;
+            //printf("%d: [%s] - ", index, eng[index]);
+        }
+        else {
+            rus[index] = lines + i;
+            //printf("[%s]\n", rus[index]);
+            index++;
+        }
+        string++;
+    }
+    printf("\nEND FILL\n\n");
 }
